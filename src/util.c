@@ -95,7 +95,7 @@ pretty_print_song(const struct mpd_song *song)
 void
 pretty_print_song1(const struct mpd_song *song, const struct mpd_status *status)
 {
-	print_formatted_song(song, status, options.format);
+	print_formatted_song1(song, status, options.format);
 }
 
 void
