@@ -128,7 +128,7 @@ song_value1(const struct mpd_song *song, const struct mpd_status *status, const 
 			value = buffer;
 		} else
 			value = NULL;
-	} else if (strcmp(name, "etime") == 0) {
+	} else if (strcmp(name, "etime") == 0) {//Time elaspsed
 		unsigned duration = mpd_status_get_elapsed_time(status);
 
 		if (duration > 0) {
