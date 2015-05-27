@@ -24,6 +24,7 @@
 #include "Compiler.h"
 
 struct mpd_song;
+struct mpd_status;
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +44,21 @@ gcc_malloc
 char *
 format_object(const char *format, const void *object,
 	      const char *(*getter)(const void *object, const char *name));
+
+/**
+ * Pretty-print an object into a string using the given format
+ * specification.
+ *
+ * @param format the format string
+ * @param object the object
+ * @param getter a getter function that extracts a value from the object
+ * @return the resulting string to be freed by free(); NULL if
+ * no format string group produced any output
+ */
+gcc_malloc
+char *
+		format_object1(const char *format, const void *object, const void *object1,
+					  const char *(*getter)(const void *object, const void *object1, const char *name));
 
 #ifdef __cplusplus
 }

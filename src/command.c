@@ -106,7 +106,7 @@ cmd_current(gcc_unused int argc, gcc_unused char **argv,
 
 		struct mpd_song *song = mpd_recv_song(conn);
 		if (song != NULL) {
-			pretty_print_song(song);
+			pretty_print_song1(song,status);
 			printf("\n");
 
 			mpd_song_free(song);

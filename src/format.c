@@ -251,9 +251,190 @@ format_object2(const char *format, const char **last, const void *object,
 	return ret;
 }
 
+static char *
+format_object3(const char *format, const char **last, const void *object, const void *object1,
+			   const char *(*getter)(const void *object, const void *object1, const char *name))
+{
+	char *ret = NULL;
+	const char *p;
+	bool found = false;
+
+	for (p = format; *p != '\0';) {
+		switch (p[0]) {
+			case '|':
+				++p;
+				if (!found) {
+					/* nothing found yet: try the next
+                       section */
+					free(ret);
+					ret = NULL;
+				} else
+					/* already found a value: skip the
+                       next section */
+					p = skip_format(p);
+				break;
+
+			case '&':
+				++p;
+				if (!found)
+					/* nothing found yet, so skip this
+                       section */
+					p = skip_format(p);
+				else
+					/* we found something yet, but it will
+                       only be used if the next section
+                       also found something, so reset the
+                       flag */
+					found = false;
+				break;
+
+			case '[': {
+				char *t = format_object3(p + 1, &p, object, object1, getter);
+				if (t != NULL) {
+					ret = string_append(ret, t, strlen(t));
+					free(t);
+					found = true;
+				}
+			}
+				break;
+
+			case ']':
+				if (last != NULL)
+					*last = p + 1;
+				if (!found) {
+					free(ret);
+					ret = NULL;
+				}
+				return ret;
+
+			case '\\': {
+				/* take care of escape sequences */
+				char ltemp;
+				switch (p[1]) {
+					case 'a':
+						ltemp = '\a';
+						break;
+
+					case 'b':
+						ltemp = '\b';
+						break;
+
+					case 't':
+						ltemp = '\t';
+						break;
+
+					case 'n':
+						ltemp = '\n';
+						break;
+
+					case 'v':
+						ltemp = '\v';
+						break;
+
+					case 'f':
+						ltemp = '\f';
+						break;
+
+					case 'r':
+						ltemp = '\r';
+						break;
+
+					case '[':
+					case ']':
+						ltemp = p[1];
+						break;
+
+					default:
+						/* unknown escape: copy the
+                           backslash */
+						ltemp = p[0];
+						--p;
+						break;
+				}
+
+				ret = string_append(ret, &ltemp, 1);
+				p += 2;
+			}
+				break;
+
+			case '%': {
+				/* find the extent of this format specifier
+                   (stop at \0, ' ', or esc) */
+				const char *end = p + 1;
+				while (is_name_char(*end))
+					++end;
+
+				const size_t length = end - p + 1;
+
+				if (*end != '%') {
+					ret = string_append(ret, p, length - 1);
+					p = end;
+					continue;
+				}
+
+				char name[32];
+				if (length > (int)sizeof(name)) {
+					ret = string_append(ret, p, length);
+					p = end + 1;
+					continue;
+				}
+
+				memcpy(name, p + 1, length - 2);
+				name[length - 2] = 0;
+
+				const char *value = getter(object, object1 ,name);
+				size_t value_length;
+				if (value != NULL) {
+					if (*value != 0)
+						found = true;
+					value_length = strlen(value);
+				} else {
+					/* unknown variable: copy verbatim
+                       from format string */
+					value = p;
+					value_length = length;
+				}
+
+				ret = string_append(ret, value, value_length);
+
+				/* advance past the specifier */
+				p = end + 1;
+			}
+				break;
+
+			case '#':
+				/* let the escape character escape itself */
+				if (p[1] != '\0') {
+					ret = string_append(ret, p + 1, 1);
+					p += 2;
+					break;
+				}
+
+				/* fall through */
+
+			default:
+				/* pass-through non-escaped portions of the format string */
+				ret = string_append(ret, p, 1);
+				++p;
+		}
+	}
+
+	if (last != NULL)
+		*last = p;
+	return ret;
+}
+
+
 char *
 format_object(const char *format, const void *object,
 	      const char *(*getter)(const void *object, const char *name))
 {
 	return format_object2(format, NULL, object, getter);
+}
+
+char *
+format_object1(const char *format, const void *object, const void *object1,
+			  const char *(*getter)(const void *object, const void *object1, const char *name))
+{
+	return format_object3(format, NULL, object, object1, getter);
 }

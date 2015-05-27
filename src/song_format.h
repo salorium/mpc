@@ -24,6 +24,7 @@
 #include "Compiler.h"
 
 struct mpd_song;
+struct mpd_status;
 
 /**
  * Pretty-print song metadata into a string using the given format
@@ -38,5 +39,19 @@ gcc_malloc
 char *
 format_song(const struct mpd_song *song,
 	    const char *format);
+
+/**
+ * Pretty-print song metadata into a string using the given format
+ * specification.
+ *
+ * @param song the song object
+ * @param format the format string
+ * @return the resulting string to be freed by free(); NULL if
+ * no format string group produced any output
+ */
+gcc_malloc
+char *
+		format_song1(const struct mpd_song *song, const struct mpd_status *status,
+        const char *format);
 
 #endif

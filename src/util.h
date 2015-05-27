@@ -25,7 +25,7 @@
 
 struct mpd_connection;
 struct mpd_song;
-
+struct mpd_status;
 #define DIE(...) do { fprintf(stderr, __VA_ARGS__); return -1; } while(0)
 
 #define SIMPLE_CMD(funcname, libmpdclient_funcname, ret) \
@@ -58,6 +58,9 @@ getStatus(struct mpd_connection *conn);
 
 void
 pretty_print_song(const struct mpd_song *song);
+
+void
+pretty_print_song1(const struct mpd_song *song, const struct mpd_status *status);
 
 void
 print_entity_list(struct mpd_connection *c, enum mpd_entity_type filter_type);

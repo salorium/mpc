@@ -75,10 +75,27 @@ print_formatted_song(const struct mpd_song *song, const char * format)
 	}
 }
 
+static void
+print_formatted_song1(const struct mpd_song *song, const struct mpd_status *status, const char * format)
+{
+	char * str = format_song1(song, status, format);
+
+	if(str) {
+		printf("%s", str);
+		free(str);
+	}
+}
+
 void
 pretty_print_song(const struct mpd_song *song)
 {
 	print_formatted_song(song, options.format);
+}
+
+void
+pretty_print_song1(const struct mpd_song *song, const struct mpd_status *status)
+{
+	print_formatted_song(song, status, options.format);
 }
 
 void
